@@ -1,26 +1,25 @@
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List
 import sqlite3
 from preference_allocation import allocate_with_preference
+from auth import hash_password, verify_password, create_access_token, get_current_user
 
 app = FastAPI(
     title="Hostel Allocation System API",
-    description="REST API with structured response schemas and custom error handling.",
-    version="1.1.0"
+    description="REST API with structured response schemas, custom errors, and JWT Authentication.",
+    version="1.2.0"
 )
 
-
-# --- 1. Request Schemas ---
+# --- Request / Response Schemas ---
 class StudentAllocationRequest(BaseModel):
     name: str = Field(..., example="Divya Rao")
     roll_number: str = Field(..., example="22CSE50")
-    year: int = Field(..., ge=1, le=4, example=2)  # Validates year between 1 and 4
+    year: int = Field(..., ge=1, le=4, example=2)
     preferred_floor: int = Field(default=1, ge=1, example=2)
 
 
-# --- 2. Response Schemas ---
 class RoomSchema(BaseModel):
     id: int
     room_number: str
@@ -42,7 +41,28 @@ class AllocationSuccessResponse(BaseModel):
     roll_number: str
 
 
-# --- 3. Custom Exceptions & Handlers ---
+class UserRegisterRequest(BaseModel):
+    username: str = Field(..., example="warden_smith")
+    password: str = Field(..., example="securepassword123")
+    role: str = Field(default="warden", example="warden")
+
+
+class RegisterSuccessResponse(BaseModel):
+    status: str = "success"
+    message: str
+
+
+class UserLoginRequest(BaseModel):
+    username: str = Field(..., example="warden_smith")
+    password: str = Field(..., example="securepassword123")
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+# --- Custom Exceptions & Handlers ---
 class AllocationError(Exception):
     def __init__(self, message: str):
         self.message = message
@@ -52,31 +72,78 @@ class AllocationError(Exception):
 async def allocation_error_handler(request: Request, exc: AllocationError):
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content={
-            "status": "error",
-            "error_type": "AllocationFailed",
-            "detail": exc.message
-        }
+        content={"status": "error", "error_type": "AllocationFailed", "detail": exc.message}
     )
 
 
-# --- Helper Function ---
 def get_db_connection():
     conn = sqlite3.connect("hostel.db")
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# --- 4. API Endpoints ---
+# --- Endpoints ---
 
 @app.get("/")
 def home():
-    return {"status": "online", "message": "Hostel Allocation API v1.1 is running!"}
+    return {"status": "online", "message": "Hostel Allocation API v1.2 is running!"}
+
+
+
+
+
+@app.post("/register", status_code=status.HTTP_201_CREATED)
+def register_user(user: UserRegisterRequest):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        hashed_pwd = hash_password(user.password)
+        cursor.execute(
+            "INSERT INTO users (username, hashed_password, role) VALUES (?, ?, ?);",
+            (user.username, hashed_pwd, user.role)
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        conn.close()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Username already exists."
+        )
+    except Exception as e:
+        conn.close()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail=f"Database error: {str(e)}"
+        )
+
+    conn.close()
+    return {"status": "success", "message": f"User '{user.username}' created successfully."}
+
+
+@app.post("/login", response_model=TokenResponse)
+def login_user(user: UserLoginRequest):
+    """Authenticates user credentials and returns a JWT token."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM users WHERE username = ?;", (user.username,))
+    db_user = cursor.fetchone()
+    conn.close()
+
+    if not db_user or not verify_password(user.password, db_user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password."
+        )
+
+    # Generate JWT token with username and role in payload
+    access_token = create_access_token(data={"sub": db_user["username"], "role": db_user["role"]})
+    return TokenResponse(access_token=access_token)
 
 
 @app.get("/rooms", response_model=RoomListResponse)
 def list_rooms():
-    """Retrieve all rooms with validated schema output."""
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id, room_number, floor, capacity, occupied_beds FROM rooms ORDER BY room_number ASC;")
@@ -84,16 +151,14 @@ def list_rooms():
     conn.close()
 
     room_list = [dict(room) for room in rooms]
-    return {
-        "status": "success",
-        "total_rooms": len(room_list),
-        "rooms": room_list
-    }
+    return {"status": "success", "total_rooms": len(room_list), "rooms": room_list}
 
 
 @app.post("/allocate", response_model=AllocationSuccessResponse)
-def allocate_room(student: StudentAllocationRequest):
-    """API endpoint to process student room allocation."""
+def allocate_room(
+    student: StudentAllocationRequest,
+    current_user: dict = Depends(get_current_user)  # 👈 Protected with JWT!
+):
     success = allocate_with_preference(
         student_name=student.name,
         roll_number=student.roll_number,
@@ -103,13 +168,12 @@ def allocate_room(student: StudentAllocationRequest):
 
     if not success:
         raise AllocationError(
-            f"Could not allocate room for roll number '{student.roll_number}'. "
-            "Hostel might be full or the roll number is already registered."
+            f"Could not allocate room for roll number '{student.roll_number}'. Hostel might be full or duplicate roll number."
         )
 
     return AllocationSuccessResponse(
         status="success",
-        message=f"Successfully allocated room for {student.name}.",
+        message=f"Successfully allocated room for {student.name} (action authorized by {current_user['username']}).",
         student_name=student.name,
         roll_number=student.roll_number
     )
