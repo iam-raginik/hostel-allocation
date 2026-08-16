@@ -1,179 +1,436 @@
-from fastapi import FastAPI, HTTPException, Request, status, Depends
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from typing import List
+from contextlib import asynccontextmanager
+from typing import List, Optional
 import sqlite3
-from preference_allocation import allocate_with_preference
-from auth import hash_password, verify_password, create_access_token, get_current_user
 
-app = FastAPI(
-    title="Hostel Allocation System API",
-    description="REST API with structured response schemas, custom errors, and JWT Authentication.",
-    version="1.2.0"
+from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
+
+from database import get_db, init_db, seed_rooms
+from schemas import (
+    UserRegisterRequest,
+    UserResponse,
+    Token,
+    StudentAllocationRequest,
+    AllocationSuccessResponse,
+    SingleAllocationResult,
+    BatchAllocationResponse,
+    RoomListResponse,
+    RoomResponse,
+)
+from auth import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user,
 )
 
-# --- Request / Response Schemas ---
-class StudentAllocationRequest(BaseModel):
-    name: str = Field(..., example="Divya Rao")
-    roll_number: str = Field(..., example="22CSE50")
-    year: int = Field(..., ge=1, le=4, example=2)
-    preferred_floor: int = Field(default=1, ge=1, example=2)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager to handle application startup and shutdown events.
+    Automatically initializes tables and populates seed rooms on startup.
+    """
+    # Startup execution
+    init_db()
+    seed_rooms()
+    yield
+    # Shutdown logic (if required)
 
 
-class RoomSchema(BaseModel):
-    id: int
-    room_number: str
-    floor: int
-    capacity: int
-    occupied_beds: int
+app = FastAPI(
+    title="Hostel Room Allocation System API",
+    description="Production-ready RESTful API for managing hostel room allocations with JWT Auth.",
+    version="2.0.0",
+    lifespan=lifespan,
+)
+
+# CORS Middleware Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-class RoomListResponse(BaseModel):
-    status: str = "success"
-    total_rooms: int
-    rooms: List[RoomSchema]
+# --- Core Endpoints ---
+
+@app.get("/", summary="System Health Check")
+def health_check():
+    """Returns the operational status of the Hostel Allocation API."""
+    return {
+        "status": "online",
+        "service": "Hostel Room Allocation System API",
+        "version": "2.0.0",
+    }
 
 
-class AllocationSuccessResponse(BaseModel):
-    status: str = "success"
-    message: str
-    student_name: str
-    roll_number: str
+# --------------------------------------------------------------------------
+# 1. Authentication System
+# --------------------------------------------------------------------------
 
-
-class UserRegisterRequest(BaseModel):
-    username: str = Field(..., example="warden_smith")
-    password: str = Field(..., example="securepassword123")
-    role: str = Field(default="warden", example="warden")
-
-
-class RegisterSuccessResponse(BaseModel):
-    status: str = "success"
-    message: str
-
-
-class UserLoginRequest(BaseModel):
-    username: str = Field(..., example="warden_smith")
-    password: str = Field(..., example="securepassword123")
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-
-# --- Custom Exceptions & Handlers ---
-class AllocationError(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-@app.exception_handler(AllocationError)
-async def allocation_error_handler(request: Request, exc: AllocationError):
-    return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content={"status": "error", "error_type": "AllocationFailed", "detail": exc.message}
-    )
-
-
-def get_db_connection():
-    conn = sqlite3.connect("hostel.db")
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-# --- Endpoints ---
-
-@app.get("/")
-def home():
-    return {"status": "online", "message": "Hostel Allocation API v1.2 is running!"}
-
-
-
-
-
-@app.post("/register", status_code=status.HTTP_201_CREATED)
-def register_user(user: UserRegisterRequest):
-    conn = get_db_connection()
+@app.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user",
+)
+def register_user(
+    payload: UserRegisterRequest,
+    conn: sqlite3.Connection = Depends(get_db),
+):
+    """
+    Registers a new user (e.g. warden/admin) with a bcrypt hashed password.
+    Returns HTTP 400 Bad Request if the username is already taken.
+    """
     cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE username = ?;", (payload.username,))
+    if cursor.fetchone() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Username '{payload.username}' is already registered.",
+        )
 
+    hashed_pwd = hash_password(payload.password)
     try:
-        hashed_pwd = hash_password(user.password)
         cursor.execute(
-            "INSERT INTO users (username, hashed_password, role) VALUES (?, ?, ?);",
-            (user.username, hashed_pwd, user.role)
+            "INSERT INTO users (username, password_hash) VALUES (?, ?);",
+            (payload.username, hashed_pwd),
         )
         conn.commit()
+        user_id = cursor.lastrowid
     except sqlite3.IntegrityError:
-        conn.close()
+        conn.rollback()
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Username already exists."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Username '{payload.username}' is already registered.",
         )
     except Exception as e:
-        conn.close()
+        conn.rollback()
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-            detail=f"Database error: {str(e)}"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error during registration: {str(e)}",
         )
 
-    conn.close()
-    return {"status": "success", "message": f"User '{user.username}' created successfully."}
+    return UserResponse(id=user_id, username=payload.username)
 
 
-@app.post("/login", response_model=TokenResponse)
-def login_user(user: UserLoginRequest):
-    """Authenticates user credentials and returns a JWT token."""
-    conn = get_db_connection()
+@app.post(
+    "/login",
+    response_model=Token,
+    summary="Authenticate user and obtain JWT token",
+)
+def login_user(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    conn: sqlite3.Connection = Depends(get_db),
+):
+    """
+    Authenticates user credentials using OAuth2PasswordRequestForm and
+    returns a signed JWT Bearer Access Token.
+    """
     cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM users WHERE username = ?;", (user.username,))
+    cursor.execute("SELECT * FROM users WHERE username = ?;", (form_data.username,))
     db_user = cursor.fetchone()
-    conn.close()
 
-    if not db_user or not verify_password(user.password, db_user["hashed_password"]):
+    if not db_user or not verify_password(form_data.password, db_user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password."
+            detail="Invalid username or password.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Generate JWT token with username and role in payload
-    access_token = create_access_token(data={"sub": db_user["username"], "role": db_user["role"]})
-    return TokenResponse(access_token=access_token)
+    access_token = create_access_token(data={"sub": db_user["username"]})
+    return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/rooms", response_model=RoomListResponse)
-def list_rooms():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, room_number, floor, capacity, occupied_beds FROM rooms ORDER BY room_number ASC;")
-    rooms = cursor.fetchall()
-    conn.close()
+# --------------------------------------------------------------------------
+# 2. Single Room Allocation (Protected by JWT)
+# --------------------------------------------------------------------------
 
-    room_list = [dict(room) for room in rooms]
-    return {"status": "success", "total_rooms": len(room_list), "rooms": room_list}
-
-
-@app.post("/allocate", response_model=AllocationSuccessResponse)
-def allocate_room(
+@app.post(
+    "/allocate",
+    response_model=AllocationSuccessResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Allocate room for a single student",
+)
+def allocate_single_student(
     student: StudentAllocationRequest,
-    current_user: dict = Depends(get_current_user)  # 👈 Protected with JWT!
+    current_user: dict = Depends(get_current_user),
+    conn: sqlite3.Connection = Depends(get_db),
 ):
-    success = allocate_with_preference(
-        student_name=student.name,
-        roll_number=student.roll_number,
-        year=student.year,
-        preferred_floor=student.preferred_floor
-    )
+    """
+    Allocates a room to a single student based on floor preference with fallback:
+    1. Checks if student roll number already exists (returns HTTP 400).
+    2. Searches for an available room on preferred_floor (where occupied_beds < capacity).
+    3. Fallback: Searches for any available room on any floor.
+    4. Returns HTTP 404 Not Found if no beds are available in the hostel.
+    5. Saves student record and increments occupied_beds in rooms table.
+    """
+    cursor = conn.cursor()
 
-    if not success:
-        raise AllocationError(
-            f"Could not allocate room for roll number '{student.roll_number}'. Hostel might be full or duplicate roll number."
+    # Step 1: Check for duplicate roll number
+    cursor.execute("SELECT id FROM students WHERE roll_number = ?;", (student.roll_number,))
+    if cursor.fetchone() is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Student with roll number '{student.roll_number}' is already registered/allocated.",
         )
 
-    return AllocationSuccessResponse(
-        status="success",
-        message=f"Successfully allocated room for {student.name} (action authorized by {current_user['username']}).",
-        student_name=student.name,
-        roll_number=student.roll_number
+    try:
+        conn.execute("BEGIN TRANSACTION;")
+
+        # Step 2: Search on preferred floor
+
+        # Query only rooms where occupied_beds < capacity
+        cursor.execute("""
+            SELECT room_number, capacity, occupied_beds 
+            FROM rooms 
+            WHERE occupied_beds < capacity 
+            LIMIT 1
+            """)
+        room = cursor.fetchone()
+        if not room:
+               # No rooms available! Return failure/raise exception
+             return {"status": "failed", "message": "Hostel is full"}
+        
+        
+        cursor.execute(
+            """
+            SELECT room_number, floor, capacity, occupied_beds 
+            FROM rooms 
+            WHERE occupied_beds < capacity AND floor = ? 
+            ORDER BY room_number ASC 
+            LIMIT 1;
+            """,
+            (student.preferred_floor,),
+        )
+        target_room = cursor.fetchone()
+
+        # Step 3: Fallback to any available room across floors
+        if not target_room:
+            cursor.execute(
+                """
+                SELECT room_number, floor, capacity, occupied_beds 
+                FROM rooms 
+                WHERE occupied_beds < capacity 
+                ORDER BY floor ASC, room_number ASC 
+                LIMIT 1;
+                """
+            )
+            target_room = cursor.fetchone()
+
+        # Step 4: If hostel is full
+        if not target_room:
+            conn.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Hostel is full. No available rooms on any floor.",
+            )
+
+        room_number = target_room["room_number"]
+        room_floor = target_room["floor"]
+
+        # Step 5: Insert student record and update room occupancy
+        cursor.execute(
+            """
+            INSERT INTO students (name, roll_number, year, room_number, preferred_floor)
+            VALUES (?, ?, ?, ?, ?);
+            """,
+            (student.name, student.roll_number, student.year, room_number, student.preferred_floor),
+        )
+
+        cursor.execute(
+            """
+            UPDATE rooms 
+            SET occupied_beds = occupied_beds + 1 
+            WHERE room_number = ?;
+            """,
+            (room_number,),
+        )
+
+        conn.commit()
+
+        return AllocationSuccessResponse(
+            status="success",
+            message=f"Successfully allocated student '{student.name}' to Room {room_number} (Floor {room_floor}).",
+            student_name=student.name,
+            roll_number=student.roll_number,
+            room_number=room_number,
+            floor=room_floor,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error during allocation: {str(e)}",
+        )
+
+
+# --------------------------------------------------------------------------
+# 3. Batch Room Allocation (Protected by JWT)
+# --------------------------------------------------------------------------
+
+@app.post(
+    "/allocate/batch",
+    response_model=BatchAllocationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Batch allocate rooms for multiple students",
+)
+def allocate_batch_students(
+    students_batch: List[StudentAllocationRequest],
+    current_user: dict = Depends(get_current_user),
+    conn: sqlite3.Connection = Depends(get_db),
+):
+    """
+    Batch allocates rooms for a list of student requests inside database transaction:
+    - Iterates through each student request.
+    - Allocates room using preferred floor first, then fallback to any open room.
+    - Gracefully records individual student failures (e.g. duplicate roll_number or hostel full)
+    - Returns a summary response with total processed, successful, failed count, and individual results.
+    """
+    if not students_batch:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Batch allocation list cannot be empty.",
+        )
+
+    cursor = conn.cursor()
+
+    total_processed = len(students_batch)
+    successful = 0
+    failed = 0
+    results: List[SingleAllocationResult] = []
+
+    try:
+        conn.execute("BEGIN TRANSACTION;")
+
+        for student in students_batch:
+            # Check duplicate roll number
+            cursor.execute("SELECT id FROM students WHERE roll_number = ?;", (student.roll_number,))
+            if cursor.fetchone() is not None:
+                failed += 1
+                results.append(
+                    SingleAllocationResult(
+                        roll_number=student.roll_number,
+                        name=student.name,
+                        status="failed",
+                        room_number=None,
+                        message=f"Duplicate roll number '{student.roll_number}' already allocated.",
+                    )
+                )
+                continue
+
+            # Try preferred floor
+            cursor.execute(
+                """
+                SELECT room_number, floor, capacity, occupied_beds 
+                FROM rooms 
+                WHERE occupied_beds < capacity AND floor = ? 
+                ORDER BY room_number ASC 
+                LIMIT 1;
+                """,
+                (student.preferred_floor,),
+            )
+            target_room = cursor.fetchone()
+
+            # Fallback to any floor
+            if not target_room:
+                cursor.execute(
+                    """
+                    SELECT room_number, floor, capacity, occupied_beds 
+                    FROM rooms 
+                    WHERE occupied_beds < capacity 
+                    ORDER BY floor ASC, room_number ASC 
+                    LIMIT 1;
+                    """
+                )
+                target_room = cursor.fetchone()
+
+            # No room available
+            if not target_room:
+                failed += 1
+                results.append(
+                    SingleAllocationResult(
+                        roll_number=student.roll_number,
+                        name=student.name,
+                        status="failed",
+                        room_number=None,
+                        message="No available rooms in the hostel.",
+                    )
+                )
+                continue
+
+            # Perform allocation for this student
+            room_number = target_room["room_number"]
+            room_floor = target_room["floor"]
+
+            cursor.execute(
+                """
+                INSERT INTO students (name, roll_number, year, room_number, preferred_floor)
+                VALUES (?, ?, ?, ?, ?);
+                """,
+                (student.name, student.roll_number, student.year, room_number, student.preferred_floor),
+            )
+
+            cursor.execute(
+                """
+                UPDATE rooms 
+                SET occupied_beds = occupied_beds + 1 
+                WHERE room_number = ?;
+                """,
+                (room_number,),
+            )
+
+            successful += 1
+            results.append(
+                SingleAllocationResult(
+                    roll_number=student.roll_number,
+                    name=student.name,
+                    status="allocated",
+                    room_number=room_number,
+                    message=f"Successfully allocated to Room {room_number} (Floor {room_floor}).",
+                )
+            )
+
+        conn.commit()
+
+        return BatchAllocationResponse(
+            total_processed=total_processed,
+            successful=successful,
+            failed=failed,
+            results=results,
+        )
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database transaction error during batch allocation: {str(e)}",
+        )
+
+
+# --------------------------------------------------------------------------
+# 4. Room Management Endpoints
+# --------------------------------------------------------------------------
+
+@app.get(
+    "/rooms",
+    response_model=RoomListResponse,
+    summary="List all rooms and current occupancy",
+)
+def list_rooms(conn: sqlite3.Connection = Depends(get_db)):
+    """Retrieves all rooms in the hostel with current bed occupancy details."""
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT room_number, floor, capacity, occupied_beds FROM rooms ORDER BY room_number ASC;"
     )
+    rows = cursor.fetchall()
+    rooms_list = [RoomResponse(**dict(row)) for row in rows]
+    return RoomListResponse(status="success", total_rooms=len(rooms_list), rooms=rooms_list)

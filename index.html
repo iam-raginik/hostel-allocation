@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hostel Room Allocation - Admin Dashboard</title>
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.15);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+      --warning: #f59e0b;
+      --radius: 16px;
+      --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+    }
+
+    .user-pill {
+      display: none;
+      align-items: center;
+      gap: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.4);
+      color: #fff;
+    }
+
+    /* Cards & Glassmorphism */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #e2e8f0;
+    }
+
+    /* Login Section */
+    #auth-section {
+      max-width: 440px;
+      margin: 3rem auto;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    input, textarea {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    textarea {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.875rem;
+      resize: vertical;
+      min-height: 180px;
+      line-height: 1.4;
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.85rem 1.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Dashboard Layout */
+    #dashboard-section {
+      display: none;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Stat Cards */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .stat-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    .stat-card.total::before { background: var(--primary); }
+    .stat-card.success::before { background: var(--success); }
+    .stat-card.failed::before { background: var(--danger); }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-top: 0.25rem;
+    }
+
+    .stat-card.total .stat-value { color: #818cf8; }
+    .stat-card.success .stat-value { color: #34d399; }
+    .stat-card.failed .stat-value { color: #f87171; }
+
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    /* Table Styling */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--card-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-secondary);
+      padding: 0.85rem 1rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .badge-allocated {
+      background: var(--success-bg);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-failed {
+      background: var(--danger-bg);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1.25rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+
+    .alert-success {
+      background: var(--success-bg);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .alert-danger {
+      background: var(--danger-bg);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Room occupancy visual grid */
+    .rooms-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .room-badge {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .room-num {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #f1f5f9;
+    }
+
+    .room-info {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .progress-bar-bg {
+      background: rgba(255, 255, 255, 0.1);
+      height: 6px;
+      border-radius: 3px;
+      margin-top: 0.4rem;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">H</div>
+        <div>
+          <h1>Hostel Room Allocation</h1>
+          <p style="font-size: 0.8rem; color: var(--text-secondary);">Day 11: Admin Dashboard & Batch Processing</p>
+        </div>
+      </div>
+      <div class="user-pill" id="user-pill">
+        <span id="user-display">👤 Warden</span>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- Alert Notifications -->
+    <div id="alert-box" class="alert"></div>
+
+    <!-- 1. AUTHENTICATION CARD -->
+    <div id="auth-section" class="card">
+      <div class="card-title">
+        <span>🔒</span> Admin Authentication
+      </div>
+      <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.825rem; margin-bottom: 1.25rem; color: #cbd5e1;">
+        🔑 <strong>Demo Credentials:</strong><br>
+        • Username: <code style="color: #818cf8; font-weight: 600;">admin_warden</code><br>
+        • Password: <code style="color: #818cf8; font-weight: 600;">securepassword123</code>
+      </div>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" value="admin_warden" placeholder="e.g. admin_warden" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" value="securepassword123" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn" id="login-btn">
+          <span>Sign In to Dashboard</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- 2. DASHBOARD SECTION (Hidden by default) -->
+    <div id="dashboard-section">
+      
+      <!-- Top Batch Allocation Input -->
+      <div class="card">
+        <div class="card-title">
+          <span>⚡</span> Batch Room Allocation (`POST /allocate/batch`)
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          Paste or edit a JSON array of student requests. The system will attempt floor preference matching, fallback to available rooms, and isolate any duplicate roll numbers or full hostel errors.
+        </p>
+
+        <div class="form-group">
+          <label for="batch-json">Student Allocation Payload (JSON Array)</label>
+          <textarea id="batch-json" rows="8">[
+  {
+    "name": "Aarav Sharma",
+    "roll_number": "22CS101",
+    "year": 2,
+    "preferred_floor": 1
+  },
+  {
+    "name": "Bhavya Gupta",
+    "roll_number": "22CS102",
+    "year": 2,
+    "preferred_floor": 2
+  },
+  {
+    "name": "Chetan Kumar",
+    "roll_number": "22CS103",
+    "year": 3,
+    "preferred_floor": 2
+  },
+  {
+    "name": "Divya Rao",
+    "roll_number": "22CS104",
+    "year": 1,
+    "preferred_floor": 3
+  },
+  {
+    "name": "Duplicate Roll Test",
+    "roll_number": "22CS101",
+    "year": 2,
+    "preferred_floor": 1
+  }
+]</textarea>
+        </div>
+
+        <button type="button" class="btn" id="batch-btn" onclick="processBatchAllocation()">
+          <span>Process Batch Allocation</span>
+        </button>
+      </div>
+
+      <!-- Results & Visualization -->
+      <div class="card">
+        <div class="card-title">
+          <span>📊</span> Allocation Summary & Data Visualization
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stats-container">
+          <div class="stat-card total">
+            <div class="stat-label">Total Processed</div>
+            <div class="stat-value" id="stat-total">0</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-label">Successful</div>
+            <div class="stat-value" id="stat-success">0</div>
+          </div>
+          <div class="stat-card failed">
+            <div class="stat-label">Failed</div>
+            <div class="stat-value" id="stat-failed">0</div>
+          </div>
+        </div>
+
+        <!-- Dynamic Results Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Roll Number</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Allocated Room</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody id="results-table-body">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                  No batch allocations processed yet. Click "Process Batch Allocation" above to begin.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Live Room Occupancy Visual Overview -->
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <div><span>🏢</span> Hostel Room Occupancy Overview</div>
+          <button style="background: transparent; border: 1px solid var(--card-border); color: var(--text-secondary); padding: 0.3rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.75rem;" onclick="fetchRoomsOverview()">
+            🔄 Refresh Rooms
+          </button>
+        </div>
+        <div class="rooms-grid" id="rooms-grid">
+          <!-- Dynamically populated via GET /rooms -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = "http://127.0.0.1:8000";
+
+    // Initialize state on page load
+    window.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        showDashboard();
+        fetchRoomsOverview();
+      }
+    });
+
+    // Helper to display alert notifications
+    function showAlert(message, type = "danger") {
+      const alertBox = document.getElementById("alert-box");
+      alertBox.className = `alert alert-${type}`;
+      alertBox.innerText = message;
+      alertBox.style.display = "block";
+      setTimeout(() => {
+        alertBox.style.display = "none";
+      }, 5000);
+    }
+
+    // Task 1: Authentication Handling (POST /login)
+    async function handleLogin(event) {
+      event.preventDefault();
+      const usernameInput = document.getElementById("username").value.trim();
+      const passwordInput = document.getElementById("password").value.trim();
+      const loginBtn = document.getElementById("login-btn");
+
+      if (!usernameInput || !passwordInput) {
+        showAlert("Please enter both username and password.");
+        return;
+      }
+
+      loginBtn.disabled = true;
+      loginBtn.innerText = "Authenticating...";
+
+      try {
+        // Send application/x-www-form-urlencoded request to /login
+        const formData = new URLSearchParams();
+        formData.append("username", usernameInput);
+        formData.append("password", passwordInput);
+
+        const response = await fetch(`${API_BASE_URL}/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: formData.toString()
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || "Authentication failed.");
+        }
+
+        // Store access_token in browser localStorage
+        localStorage.setItem("access_token", data.access_token);
+        localStorage.setItem("username", usernameInput);
+
+        showAlert(`Welcome back, ${usernameInput}! Login successful.`, "success");
+        showDashboard();
+        fetchRoomsOverview();
+
+      } catch (err) {
+        showAlert(`Login Error: ${err.message}`, "danger");
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerText = "Sign In to Dashboard";
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById("auth-section").style.display = "none";
+      document.getElementById("dashboard-section").style.display = "block";
+      document.getElementById("user-pill").style.display = "flex";
+      const savedUser = localStorage.getItem("username") || "Admin Warden";
+      document.getElementById("user-display").innerText = `👤 ${savedUser}`;
+    }
+
+    function logout() {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("username");
+      document.getElementById("dashboard-section").style.display = "none";
+      document.getElementById("user-pill").style.display = "none";
+      document.getElementById("auth-section").style.display = "block";
+      showAlert("Logged out successfully.", "success");
+    }
+
+    // Task 2: Batch Room Allocation Processing (POST /allocate/batch)
+    async function processBatchAllocation() {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        showAlert("Session expired. Please log in again.", "danger");
+        logout();
+        return;
+      }
+
+      const jsonTextarea = document.getElementById("batch-json").value.trim();
+      const batchBtn = document.getElementById("batch-btn");
+
+      let payload;
+      try {
+        payload = JSON.parse(jsonTextarea);
+        if (!Array.isArray(payload)) {
+          throw new Error("JSON payload must be an array of student objects.");
+        }
+      } catch (err) {
+        showAlert(`Invalid JSON Format: ${err.message}`, "danger");
+        return;
+      }
+
+      batchBtn.disabled = true;
+      batchBtn.innerText = "Processing Batch Allocation...";
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/allocate/batch`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+          showAlert("Authentication failed or token expired. Please log in again.", "danger");
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(data.detail || "Batch allocation request failed.");
+        }
+
+        // Render stats & dynamic results table
+        renderBatchResults(data);
+        fetchRoomsOverview();
+        showAlert(`Batch process complete! ${data.successful} allocated, ${data.failed} failed out of ${data.total_processed}.`, "success");
+
+      } catch (err) {
+        showAlert(`Allocation Error: ${err.message}`, "danger");
+      } finally {
+        batchBtn.disabled = false;
+        batchBtn.innerText = "Process Batch Allocation";
+      }
+    }
+
+    // Task 3: Data Visualization & Results Table Rendering
+    function renderBatchResults(data) {
+      // Update Stat Boxes
+      document.getElementById("stat-total").innerText = data.total_processed;
+      document.getElementById("stat-success").innerText = data.successful;
+      document.getElementById("stat-failed").innerText = data.failed;
+
+      // Update Results Table
+      const tbody = document.getElementById("results-table-body");
+      tbody.innerHTML = "";
+
+      if (!data.results || data.results.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 1.5rem;">No results returned.</td></tr>`;
+        return;
+      }
+
+      data.results.forEach(res => {
+        const tr = document.createElement("tr");
+        
+        const isAllocated = res.status === "allocated";
+        const badgeClass = isAllocated ? "badge-allocated" : "badge-failed";
+        const statusText = isAllocated ? "✓ Allocated" : "✕ Failed";
+
+        tr.innerHTML = `
+          <td><strong>${res.roll_number}</strong></td>
+          <td>${res.name}</td>
+          <td><span class="badge ${badgeClass}">${statusText}</span></td>
+          <td>${res.room_number ? `Room ${res.room_number}` : '<span style="color: var(--text-secondary);">-</span>'}</td>
+          <td>${res.message}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Helper: Fetch Live Rooms Overview (GET /rooms)
+    async function fetchRoomsOverview() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/rooms`);
+        if (!response.ok) return;
+        const data = await response.json();
+
+        const grid = document.getElementById("rooms-grid");
+        grid.innerHTML = "";
+
+        data.rooms.forEach(room => {
+          const fillPercent = Math.min(100, Math.round((room.occupied_beds / room.capacity) * 100));
+          const isFull = room.occupied_beds >= room.capacity;
+
+          const card = document.createElement("div");
+          card.className = "room-badge";
+          card.innerHTML = `
+            <div class="room-num">Room ${room.room_number}</div>
+            <div class="room-info">Floor ${room.floor} • ${room.occupied_beds}/${room.capacity} Beds</div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" style="width: ${fillPercent}%; background: ${isFull ? '#ef4444' : '#10b981'};"></div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error("Failed to load rooms overview:", err);
+      }
+    }
+  </script>
+</body>
+</html>
