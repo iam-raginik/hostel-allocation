@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import List, Optional
 import sqlite3
+import time
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,6 +26,7 @@ from auth import (
     create_access_token,
     get_current_user,
 )
+from logger import logger
 
 
 @asynccontextmanager
@@ -55,6 +57,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Day 13: Request Timing & Logging Middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """
+    HTTP Middleware to track execution duration, log details of incoming requests,
+    and attach 'X-Process-Time-Ms' header to the HTTP response.
+    """
+    start_time = time.perf_counter()
+
+    response = await call_next(request)
+
+    process_time = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
+    client_ip = request.client.host if request.client else "Unknown"
+
+    logger.info(
+        f"METHOD={request.method} PATH={request.url.path} STATUS={response.status_code} "
+        f"TIME={process_time:.2f}ms IP={client_ip}"
+    )
+
+    # Attach execution time header to the HTTP response
+    response.headers["X-Process-Time-Ms"] = f"{process_time:.2f}"
+    return response
 
 
 # --- Core Endpoints ---
@@ -131,18 +157,21 @@ def login_user(
     """
     Authenticates user credentials using OAuth2PasswordRequestForm and
     returns a signed JWT Bearer Access Token.
+    Logs audit events for failed warnings and successful logins.
     """
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE username = ?;", (form_data.username,))
     db_user = cursor.fetchone()
 
     if not db_user or not verify_password(form_data.password, db_user["password_hash"]):
+        logger.warning(f"AUDIT | Failed login attempt for username: {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    logger.info(f"AUDIT | Successful login for user: {db_user['username']}")
     access_token = create_access_token(data={"sub": db_user["username"]})
     return Token(access_token=access_token, token_type="bearer")
 
@@ -184,20 +213,6 @@ def allocate_single_student(
         conn.execute("BEGIN TRANSACTION;")
 
         # Step 2: Search on preferred floor
-
-        # Query only rooms where occupied_beds < capacity
-        cursor.execute("""
-            SELECT room_number, capacity, occupied_beds 
-            FROM rooms 
-            WHERE occupied_beds < capacity 
-            LIMIT 1
-            """)
-        room = cursor.fetchone()
-        if not room:
-               # No rooms available! Return failure/raise exception
-             return {"status": "failed", "message": "Hostel is full"}
-        
-        
         cursor.execute(
             """
             SELECT room_number, floor, capacity, occupied_beds 
@@ -294,6 +309,7 @@ def allocate_batch_students(
     - Allocates room using preferred floor first, then fallback to any open room.
     - Gracefully records individual student failures (e.g. duplicate roll_number or hostel full)
     - Returns a summary response with total processed, successful, failed count, and individual results.
+    - Logs audit details for batch allocation start and completion.
     """
     if not students_batch:
         raise HTTPException(
@@ -301,9 +317,14 @@ def allocate_batch_students(
             detail="Batch allocation list cannot be empty.",
         )
 
-    cursor = conn.cursor()
-
+    executing_user = current_user.get("username", "Unknown") if isinstance(current_user, dict) else str(current_user)
     total_processed = len(students_batch)
+
+    logger.info(
+        f"AUDIT | Starting batch allocation execution by user '{executing_user}' for {total_processed} records."
+    )
+
+    cursor = conn.cursor()
     successful = 0
     failed = 0
     results: List[SingleAllocationResult] = []
@@ -400,6 +421,10 @@ def allocate_batch_students(
             )
 
         conn.commit()
+
+        logger.info(
+            f"AUDIT | Batch allocation completed for user '{executing_user}': {successful} successful, {failed} failed out of {total_processed} records."
+        )
 
         return BatchAllocationResponse(
             total_processed=total_processed,

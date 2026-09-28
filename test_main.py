@@ -220,3 +220,14 @@ def test_batch_allocation_flow():
     data = response.json()
     assert data["total_processed"] == 2
     assert data["successful"] == 2
+
+
+# --- 4. Middleware & Logging Tests ---
+
+def test_request_timing_middleware_header():
+    """Verify that HTTP responses include the X-Process-Time-Ms custom header."""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "X-Process-Time-Ms" in response.headers
+    assert float(response.headers["X-Process-Time-Ms"]) >= 0.0
+
