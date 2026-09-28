@@ -1,8 +1,15 @@
+import os
 import sqlite3
 from typing import Generator
 from passlib.context import CryptContext
+from dotenv import load_dotenv
 
-DB_NAME = "hostel.db"
+# Load environment variables from .env file
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hostel.db")
+DB_NAME = DATABASE_URL.replace("sqlite:///", "") if DATABASE_URL.startswith("sqlite:///") else DATABASE_URL
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 

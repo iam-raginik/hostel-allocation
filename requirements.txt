@@ -1,8 +1,9 @@
-fastapi>=0.110.0
-uvicorn>=0.28.0
-passlib[bcrypt]>=1.7.4
-python-jose[cryptography]>=3.3.0
-pydantic>=2.6.0
-python-multipart>=0.0.9
-httpx>=0.28.0
-pytest>=8.0.0
+fastapi==0.141.1
+uvicorn==0.52.3
+pydantic==2.13.4
+pyjwt==2.15.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+python-dotenv==1.2.3
+pytest==9.1.1
+httpx==0.28.1

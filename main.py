@@ -83,6 +83,20 @@ async def log_requests(request: Request, call_next):
     return response
 
 
+# Global Exception Handler for unexpected 500 errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler to catch unexpected server errors, log full traceback via logger.error,
+    and prevent raw stack traces from leaking to clients.
+    """
+    logger.error(f"Unhandled server error on {request.method} {request.url.path}: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An unexpected internal server error occurred."},
+    )
+
+
 # --- Core Endpoints ---
 
 @app.get("/", summary="System Health Check")

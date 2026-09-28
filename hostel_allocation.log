@@ -78,3 +78,147 @@
 2026-09-28 14:36:01,111 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'testuser': 2 successful, 0 failed out of 2 records.
 2026-09-28 14:36:01,111 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=7.51ms IP=testclient
 2026-09-28 14:36:01,332 | INFO     | hostel_allocation | METHOD=GET PATH=/ STATUS=200 TIME=0.82ms IP=testclient
+2026-09-28 14:43:18,568 | INFO     | hostel_allocation | METHOD=GET PATH=/docs STATUS=200 TIME=1.77ms IP=127.0.0.1
+2026-09-28 14:43:19,036 | INFO     | hostel_allocation | METHOD=GET PATH=/openapi.json STATUS=200 TIME=40.80ms IP=127.0.0.1
+2026-09-28 14:44:33,990 | INFO     | hostel_allocation | AUDIT | Successful login for user: admin_warden
+2026-09-28 14:44:33,993 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=494.92ms IP=127.0.0.1
+2026-09-28 14:44:34,007 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=6.06ms IP=127.0.0.1
+2026-09-28 14:44:43,439 | INFO     | hostel_allocation | METHOD=OPTIONS PATH=/allocate/batch STATUS=200 TIME=0.81ms IP=127.0.0.1
+2026-09-28 14:44:43,463 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'admin_warden' for 5 records.
+2026-09-28 14:44:43,468 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'admin_warden': 0 successful, 5 failed out of 5 records.
+2026-09-28 14:44:43,471 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=21.01ms IP=127.0.0.1
+2026-09-28 14:44:43,489 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=7.85ms IP=127.0.0.1
+2026-09-28 14:44:51,186 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=3.44ms IP=127.0.0.1
+2026-09-28 14:44:52,588 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=3.73ms IP=127.0.0.1
+2026-09-28 14:44:53,551 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=2.64ms IP=127.0.0.1
+2026-09-28 14:45:26,589 | INFO     | hostel_allocation | METHOD=OPTIONS PATH=/allocate/batch STATUS=200 TIME=0.66ms IP=127.0.0.1
+2026-09-28 14:45:26,606 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'admin_warden' for 5 records.
+2026-09-28 14:45:26,627 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'admin_warden': 5 successful, 0 failed out of 5 records.
+2026-09-28 14:45:26,631 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=33.64ms IP=127.0.0.1
+2026-09-28 14:45:26,656 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=16.65ms IP=127.0.0.1
+2026-09-28 14:45:59,286 | INFO     | hostel_allocation | METHOD=OPTIONS PATH=/allocate/batch STATUS=200 TIME=0.54ms IP=127.0.0.1
+2026-09-28 14:45:59,297 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'admin_warden' for 5 records.
+2026-09-28 14:45:59,312 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'admin_warden': 1 successful, 4 failed out of 5 records.
+2026-09-28 14:45:59,316 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=24.51ms IP=127.0.0.1
+2026-09-28 14:45:59,328 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=6.34ms IP=127.0.0.1
+2026-09-28 14:46:06,541 | INFO     | hostel_allocation | METHOD=GET PATH=/rooms STATUS=200 TIME=2.57ms IP=127.0.0.1
+2026-09-28 17:04:46,351 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=309.68ms IP=testclient
+2026-09-28 17:04:47,007 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=303.94ms IP=testclient
+2026-09-28 17:04:47,015 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=400 TIME=4.48ms IP=testclient
+2026-09-28 17:04:47,667 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=328.42ms IP=testclient
+2026-09-28 17:04:47,973 | INFO     | hostel_allocation | AUDIT | Successful login for user: loginuser
+2026-09-28 17:04:47,975 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=302.90ms IP=testclient
+2026-09-28 17:04:48,611 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=305.99ms IP=testclient
+2026-09-28 17:04:48,915 | WARNING  | hostel_allocation | AUDIT | Failed login attempt for username: loginuser
+2026-09-28 17:04:48,916 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=401 TIME=296.38ms IP=testclient
+2026-09-28 17:04:49,569 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=315.62ms IP=testclient
+2026-09-28 17:04:49,887 | INFO     | hostel_allocation | AUDIT | Successful login for user: qa_admin2
+2026-09-28 17:04:49,888 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=314.87ms IP=testclient
+2026-09-28 17:04:50,224 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=401 TIME=1.45ms IP=testclient
+2026-09-28 17:04:50,615 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=401 TIME=1.46ms IP=testclient
+2026-09-28 17:04:51,212 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=290.65ms IP=testclient
+2026-09-28 17:04:51,496 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:04:51,498 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=280.27ms IP=testclient
+2026-09-28 17:04:51,518 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=201 TIME=16.18ms IP=testclient
+2026-09-28 17:04:52,128 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=293.20ms IP=testclient
+2026-09-28 17:04:52,420 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:04:52,421 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=288.15ms IP=testclient
+2026-09-28 17:04:52,434 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=201 TIME=9.46ms IP=testclient
+2026-09-28 17:04:52,442 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=400 TIME=4.26ms IP=testclient
+2026-09-28 17:04:53,062 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=289.79ms IP=testclient
+2026-09-28 17:04:53,356 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:04:53,358 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=290.30ms IP=testclient
+2026-09-28 17:04:53,373 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'testuser' for 2 records.
+2026-09-28 17:04:53,377 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'testuser': 2 successful, 0 failed out of 2 records.
+2026-09-28 17:04:53,379 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=17.66ms IP=testclient
+2026-09-28 17:04:53,984 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=291.90ms IP=testclient
+2026-09-28 17:04:54,289 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:04:54,291 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=302.25ms IP=testclient
+2026-09-28 17:04:54,299 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=400 TIME=4.74ms IP=testclient
+2026-09-28 17:04:54,943 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=305.52ms IP=testclient
+2026-09-28 17:04:55,252 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:04:55,253 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=306.46ms IP=testclient
+2026-09-28 17:04:55,260 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'testuser' for 2 records.
+2026-09-28 17:04:55,270 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'testuser': 2 successful, 0 failed out of 2 records.
+2026-09-28 17:04:55,271 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=14.00ms IP=testclient
+2026-09-28 17:04:55,597 | INFO     | hostel_allocation | METHOD=GET PATH=/ STATUS=200 TIME=1.33ms IP=testclient
+2026-09-28 17:13:18,593 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=305.69ms IP=testclient
+2026-09-28 17:13:19,203 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=296.82ms IP=testclient
+2026-09-28 17:13:19,213 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=400 TIME=4.92ms IP=testclient
+2026-09-28 17:13:19,829 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=296.50ms IP=testclient
+2026-09-28 17:13:20,119 | INFO     | hostel_allocation | AUDIT | Successful login for user: loginuser
+2026-09-28 17:13:20,120 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=287.30ms IP=testclient
+2026-09-28 17:13:20,735 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=297.19ms IP=testclient
+2026-09-28 17:13:21,036 | WARNING  | hostel_allocation | AUDIT | Failed login attempt for username: loginuser
+2026-09-28 17:13:21,037 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=401 TIME=296.15ms IP=testclient
+2026-09-28 17:13:21,745 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=319.35ms IP=testclient
+2026-09-28 17:13:22,053 | INFO     | hostel_allocation | AUDIT | Successful login for user: qa_admin2
+2026-09-28 17:13:22,055 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=305.19ms IP=testclient
+2026-09-28 17:13:22,388 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=401 TIME=1.41ms IP=testclient
+2026-09-28 17:13:22,716 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=401 TIME=0.93ms IP=testclient
+2026-09-28 17:13:23,372 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=317.42ms IP=testclient
+2026-09-28 17:13:23,679 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:13:23,680 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=302.89ms IP=testclient
+2026-09-28 17:13:23,695 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=201 TIME=11.05ms IP=testclient
+2026-09-28 17:13:24,335 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=310.33ms IP=testclient
+2026-09-28 17:13:24,686 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:13:24,687 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=346.42ms IP=testclient
+2026-09-28 17:13:24,706 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=201 TIME=9.45ms IP=testclient
+2026-09-28 17:13:24,727 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=400 TIME=9.50ms IP=testclient
+2026-09-28 17:13:25,354 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=293.85ms IP=testclient
+2026-09-28 17:13:25,638 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:13:25,640 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=280.33ms IP=testclient
+2026-09-28 17:13:25,648 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'testuser' for 2 records.
+2026-09-28 17:13:25,660 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'testuser': 2 successful, 0 failed out of 2 records.
+2026-09-28 17:13:25,661 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=17.49ms IP=testclient
+2026-09-28 17:13:26,286 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=304.00ms IP=testclient
+2026-09-28 17:13:26,593 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:13:26,594 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=301.43ms IP=testclient
+2026-09-28 17:13:26,600 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=400 TIME=2.65ms IP=testclient
+2026-09-28 17:13:27,213 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=299.92ms IP=testclient
+2026-09-28 17:13:27,504 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:13:27,505 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=289.08ms IP=testclient
+2026-09-28 17:13:27,512 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'testuser' for 2 records.
+2026-09-28 17:13:27,525 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'testuser': 2 successful, 0 failed out of 2 records.
+2026-09-28 17:13:27,526 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=16.04ms IP=testclient
+2026-09-28 17:13:27,844 | INFO     | hostel_allocation | METHOD=GET PATH=/ STATUS=200 TIME=0.91ms IP=testclient
+2026-09-28 17:30:07,128 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=294.26ms IP=testclient
+2026-09-28 17:30:07,753 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=293.00ms IP=testclient
+2026-09-28 17:30:07,761 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=400 TIME=4.22ms IP=testclient
+2026-09-28 17:30:08,368 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=302.49ms IP=testclient
+2026-09-28 17:30:08,660 | INFO     | hostel_allocation | AUDIT | Successful login for user: loginuser
+2026-09-28 17:30:08,661 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=288.95ms IP=testclient
+2026-09-28 17:30:09,294 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=290.60ms IP=testclient
+2026-09-28 17:30:09,589 | WARNING  | hostel_allocation | AUDIT | Failed login attempt for username: loginuser
+2026-09-28 17:30:09,590 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=401 TIME=291.88ms IP=testclient
+2026-09-28 17:30:10,232 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=300.24ms IP=testclient
+2026-09-28 17:30:10,535 | INFO     | hostel_allocation | AUDIT | Successful login for user: qa_admin2
+2026-09-28 17:30:10,536 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=300.33ms IP=testclient
+2026-09-28 17:30:10,887 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=401 TIME=1.67ms IP=testclient
+2026-09-28 17:30:11,223 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=401 TIME=1.08ms IP=testclient
+2026-09-28 17:30:11,879 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=302.59ms IP=testclient
+2026-09-28 17:30:12,180 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:30:12,181 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=298.09ms IP=testclient
+2026-09-28 17:30:12,200 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=201 TIME=15.14ms IP=testclient
+2026-09-28 17:30:12,847 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=314.65ms IP=testclient
+2026-09-28 17:30:13,155 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:30:13,156 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=304.21ms IP=testclient
+2026-09-28 17:30:13,173 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=201 TIME=12.46ms IP=testclient
+2026-09-28 17:30:13,182 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate STATUS=400 TIME=3.94ms IP=testclient
+2026-09-28 17:30:13,836 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=308.15ms IP=testclient
+2026-09-28 17:30:14,133 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:30:14,135 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=294.94ms IP=testclient
+2026-09-28 17:30:14,143 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'testuser' for 2 records.
+2026-09-28 17:30:14,155 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'testuser': 2 successful, 0 failed out of 2 records.
+2026-09-28 17:30:14,156 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=17.59ms IP=testclient
+2026-09-28 17:30:14,816 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=309.32ms IP=testclient
+2026-09-28 17:30:15,126 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:30:15,127 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=307.67ms IP=testclient
+2026-09-28 17:30:15,135 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=400 TIME=3.76ms IP=testclient
+2026-09-28 17:30:15,805 | INFO     | hostel_allocation | METHOD=POST PATH=/register STATUS=201 TIME=298.74ms IP=testclient
+2026-09-28 17:30:16,100 | INFO     | hostel_allocation | AUDIT | Successful login for user: testuser
+2026-09-28 17:30:16,101 | INFO     | hostel_allocation | METHOD=POST PATH=/login STATUS=200 TIME=290.91ms IP=testclient
+2026-09-28 17:30:16,108 | INFO     | hostel_allocation | AUDIT | Starting batch allocation execution by user 'testuser' for 2 records.
+2026-09-28 17:30:16,119 | INFO     | hostel_allocation | AUDIT | Batch allocation completed for user 'testuser': 2 successful, 0 failed out of 2 records.
+2026-09-28 17:30:16,120 | INFO     | hostel_allocation | METHOD=POST PATH=/allocate/batch STATUS=200 TIME=14.79ms IP=testclient
+2026-09-28 17:30:16,476 | INFO     | hostel_allocation | METHOD=GET PATH=/ STATUS=200 TIME=3.11ms IP=testclient
